@@ -1,0 +1,291 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  OAuthProvider,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  setPersistence,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  updatePassword,
+  updateProfile,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  onSnapshot,
+  setDoc,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const config = window.ECZ_FIREBASE_CONFIG;
+const configured = config && !config.apiKey.includes("YOUR_");
+let auth;
+let db;
+let unsubscribeProfile;
+const localDatabase = new Promise((resolve, reject) => {
+  const request = indexedDB.open("ecz-launcher", 1);
+  request.onupgradeneeded = () => {
+    const database = request.result;
+    database.createObjectStore("accounts", { keyPath: "email" });
+  };
+  request.onsuccess = () => resolve(request.result);
+  request.onerror = () => reject(request.error);
+});
+
+async function hashPassword(password) {
+  const bytes = new TextEncoder().encode(password);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function validatePassword(password) {
+  if (!password || password.length < 6) throw new Error("Password must be at least 6 characters.");
+}
+
+async function localAccount(email, password, createAccount, keepLoggedIn) {
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!normalizedEmail || password.length < 6) throw new Error("Enter an email and a password with at least 6 characters.");
+  const database = await localDatabase;
+  const existing = await new Promise((resolve, reject) => {
+    const request = database.transaction("accounts").objectStore("accounts").get(normalizedEmail);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  if (createAccount && existing) throw new Error("An account with this email already exists on this device.");
+  if (!createAccount && (!existing || existing.passwordHash !== await hashPassword(password))) throw new Error("The email or password is incorrect.");
+  const account = existing || {
+    email: normalizedEmail,
+    passwordHash: await hashPassword(password),
+    displayName: normalizedEmail.split("@")[0],
+    photoURL: "/images/eagler-account.png",
+    provider: "password",
+    editable: true,
+  };
+  await new Promise((resolve, reject) => {
+    const request = database.transaction("accounts", "readwrite").objectStore("accounts").put(account);
+    request.onsuccess = resolve;
+    request.onerror = () => reject(request.error);
+  });
+  const { passwordHash, ...profile } = account;
+  sessionStorage.account = JSON.stringify(profile);
+  if (keepLoggedIn) {
+    localStorage.setItem("ecz-active-account", normalizedEmail);
+  } else {
+    localStorage.removeItem("ecz-active-account");
+  }
+  location.href = "/logo.html";
+}
+
+async function localProfileUpdate(profile) {
+  const database = await localDatabase;
+  const email = JSON.parse(sessionStorage.account || "{}").email;
+  const account = await new Promise((resolve, reject) => {
+    const request = database.transaction("accounts").objectStore("accounts").get(email);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  if (!account) return;
+  const updated = { ...account, displayName: profile.displayName, photoURL: profile.photoURL };
+  await new Promise((resolve, reject) => {
+    const request = database.transaction("accounts", "readwrite").objectStore("accounts").put(updated);
+    request.onsuccess = resolve;
+    request.onerror = () => reject(request.error);
+  });
+  const { passwordHash, ...publicProfile } = updated;
+  sessionStorage.account = JSON.stringify(publicProfile);
+  document.dispatchEvent(new CustomEvent("ecz-profile-updated", { detail: publicProfile }));
+}
+
+async function changeLocalPassword(currentPassword, newPassword) {
+  validatePassword(newPassword);
+  const email = JSON.parse(sessionStorage.account || "{}").email;
+  const database = await localDatabase;
+  const account = await new Promise((resolve, reject) => {
+    const request = database.transaction("accounts").objectStore("accounts").get(email);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  if (!account || account.passwordHash !== await hashPassword(currentPassword)) throw new Error("The current password is incorrect.");
+  account.passwordHash = await hashPassword(newPassword);
+  await new Promise((resolve, reject) => {
+    const request = database.transaction("accounts", "readwrite").objectStore("accounts").put(account);
+    request.onsuccess = resolve;
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function recoverLocalPassword(email, newPassword) {
+  const normalizedEmail = email.trim().toLowerCase();
+  validatePassword(newPassword);
+  const database = await localDatabase;
+  const account = await new Promise((resolve, reject) => {
+    const request = database.transaction("accounts").objectStore("accounts").get(normalizedEmail);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  if (!account) throw new Error("No account was found with that email address on this device.");
+  account.passwordHash = await hashPassword(newPassword);
+  await new Promise((resolve, reject) => {
+    const request = database.transaction("accounts", "readwrite").objectStore("accounts").put(account);
+    request.onsuccess = resolve;
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function displayError(error) {
+  const message = error?.code === "auth/invalid-credential"
+    ? "The email or password is incorrect."
+    : error?.code === "auth/popup-closed-by-user"
+      ? "The sign-in window was closed."
+      : error?.message || "Authentication failed.";
+  document.dispatchEvent(new CustomEvent("ecz-auth-error", { detail: message }));
+}
+
+function profileFromUser(user) {
+  const provider = user.providerData.some((item) => item.providerId === "google.com" || item.providerId === "microsoft.com")
+    ? user.providerData.find((item) => item.providerId === "google.com" || item.providerId === "microsoft.com").providerId
+    : "password";
+  return {
+    displayName: user.displayName || user.email?.split("@")[0] || "Player",
+    photoURL: user.photoURL || "/images/eagler-account.png",
+    provider,
+    editable: provider === "password",
+    email: user.email || "",
+  };
+}
+
+async function saveProfile(user, profile) {
+  await setDoc(doc(db, "profiles", user.uid), {
+    ...profile,
+    uid: user.uid,
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+}
+
+async function saveLauncherState(user, state) {
+  await setDoc(doc(db, "launcherState", user.uid), {
+    uid: user.uid,
+    ...state,
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+}
+
+async function loadLauncherState(user) {
+  const snapshot = await getDoc(doc(db, "launcherState", user.uid));
+  return snapshot.exists() ? snapshot.data() : null;
+}
+
+async function finishSignIn(user) {
+  const profile = profileFromUser(user);
+  await saveProfile(user, profile);
+  sessionStorage.account = JSON.stringify(profile);
+  location.href = "/logo.html";
+}
+
+async function signIn(provider) {
+  if (!configured) throw new Error("Google and Microsoft sign-in need OAuth provider setup. Local accounts are ready to use.");
+  const providerInstance = provider === "google" ? new GoogleAuthProvider() : new OAuthProvider("microsoft.com");
+  const result = await signInWithPopup(auth, providerInstance);
+  await finishSignIn(result.user);
+}
+
+async function emailSignIn(email, password, createAccount, keepLoggedIn) {
+  if (!configured) return localAccount(email, password, createAccount, keepLoggedIn);
+  await setPersistence(auth, keepLoggedIn ? browserLocalPersistence : browserSessionPersistence);
+  const result = createAccount
+    ? await createUserWithEmailAndPassword(auth, email, password)
+    : await signInWithEmailAndPassword(auth, email, password);
+  await finishSignIn(result.user);
+}
+
+window.ECZAuth = {
+  configured,
+  signInGoogle: () => signIn("google").catch(displayError),
+  signInMicrosoft: () => signIn("microsoft").catch(displayError),
+  signInEmail: (email, password, createAccount, keepLoggedIn) => emailSignIn(email, password, createAccount, keepLoggedIn).catch(displayError),
+  changePassword: async (currentPassword, newPassword) => {
+    if (!configured) return changeLocalPassword(currentPassword, newPassword);
+    const user = auth.currentUser;
+    if (!user) throw new Error("You are not signed in.");
+    await updatePassword(user, newPassword);
+  },
+  recoverPassword: async (email, newPassword) => {
+    if (!configured) return recoverLocalPassword(email, newPassword);
+    await sendPasswordResetEmail(auth, email.trim());
+  },
+  signOut: () => {
+    if (configured) return signOut(auth);
+    sessionStorage.removeItem("account");
+    localStorage.removeItem("ecz-active-account");
+    return Promise.resolve();
+  },
+  saveLocalProfile: async (profile) => {
+    if (!configured) return localProfileUpdate(profile);
+    const user = auth.currentUser;
+    if (!user || profileFromUser(user).provider !== "password") return;
+    await updateProfile(user, { displayName: profile.displayName, photoURL: profile.photoURL });
+    await saveProfile(user, { ...profile, editable: true, provider: "password" });
+    sessionStorage.account = JSON.stringify({ ...profile, editable: true, provider: "password" });
+    document.dispatchEvent(new CustomEvent("ecz-profile-updated", { detail: profile }));
+  },
+  saveLauncherState: async (state) => {
+    if (!configured || !auth.currentUser) return;
+    await saveLauncherState(auth.currentUser, state);
+  },
+  loadLauncherState: async () => {
+    if (!configured || !auth.currentUser) return null;
+    return loadLauncherState(auth.currentUser);
+  },
+};
+
+if (configured) {
+  const app = initializeApp(config);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  onAuthStateChanged(auth, (user) => {
+    if (!user) return;
+    unsubscribeProfile?.();
+    unsubscribeProfile = onSnapshot(doc(db, "profiles", user.uid), (snapshot) => {
+      const profile = { ...profileFromUser(user), ...(snapshot.data() || {}) };
+      sessionStorage.account = JSON.stringify(profile);
+      document.dispatchEvent(new CustomEvent("ecz-profile-updated", { detail: profile }));
+      if (location.pathname === "/" || location.pathname === "/index.html") location.href = "/logo.html";
+    });
+    loadLauncherState(user).then((state) => {
+      if (!state) return;
+      ["instances", "launcherSettings", "modList", "mods", "launcherUi"].forEach((key) => {
+        if (state[key] !== undefined) localStorage.setItem(key, typeof state[key] === "string" ? state[key] : JSON.stringify(state[key]));
+      });
+      if (state.selectedInstance) sessionStorage.setItem("selectedInstance", JSON.stringify(state.selectedInstance));
+      document.dispatchEvent(new CustomEvent("ecz-launcher-state-loaded", { detail: state }));
+    }).catch(() => {});
+  });
+} else {
+  document.dispatchEvent(new CustomEvent("ecz-auth-error", {
+    detail: "Accounts are currently local ONLY",
+  }));
+
+  localDatabase.then(async (database) => {
+    const email = localStorage.getItem("ecz-active-account");
+    if (!email || sessionStorage.account) return;
+    const request = database.transaction("accounts").objectStore("accounts").get(email);
+    const account = await new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    if (!account) {
+      localStorage.removeItem("ecz-active-account");
+      return;
+    }
+    const { passwordHash, ...profile } = account;
+    sessionStorage.account = JSON.stringify(profile);
+    if (location.pathname === "/" || location.pathname === "/index.html") location.href = "/logo.html";
+  }).catch(() => {});
+}

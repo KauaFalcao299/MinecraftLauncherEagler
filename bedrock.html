@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<!-- saved from url=(0055)https://ecz-launcher.vercel.app/pages/play/bedrock.html -->
+<html><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/extend-native-history-api.js"></script><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/requests.js"></script><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minecraft Bedrock Edition</title>
+  <style>
+    :root { color-scheme: dark; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+    }
+
+    body {
+      position: relative;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      background-image: url("/images/background/26.2.png");
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+
+    .bedrock-page {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+    }
+
+    .bedrock-logo {
+      position: absolute;
+      left: 50%;
+      top: 15px;
+      width: min(240px, 35%);
+      transform: translateX(-50%);
+      pointer-events: none;
+      filter: drop-shadow(2px 3px 1px rgba(0, 0, 0, 0.45));
+    }
+
+    .bedrock-logo img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .bedrock-playbar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #202020;
+      border-top: 1px solid #111;
+      transition: bottom 0.3s ease;
+      overflow: visible;
+    }
+
+    .bedrock-button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      top: -30%;
+      width: 280px;
+      height: 60px;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+      transition: width 0.3s ease, filter 0.15s ease, transform 0.15s ease;
+    }
+
+    .bedrock-button:hover {
+      filter: brightness(1.08) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+      transform: translateY(-1px);
+    }
+
+    .bedrock-button img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    .bedrock-button.disabled {
+      cursor: default;
+      pointer-events: none;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+      transform: none;
+    }
+
+    .coin {
+      position: absolute;
+      right: 2px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 120px;
+      height: 120px;
+      pointer-events: none;
+    }
+
+    .coin img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .alert-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 42px;
+      display: none;
+      align-items: center;
+      padding: 0 15px;
+      background: #c62828;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      gap: 8px;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.4);
+    }
+
+    .alert-bar .icon {
+      font-size: 18px;
+      line-height: 1;
+    }
+  </style>
+<script bis_use="true" type="text/javascript" charset="utf-8" nonce="" data-dynamic-id="e674b13b-2441-4692-860d-f4c7685ae58e" src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/executors/200.js"></script></head>
+<body __processed_ce4545b9-2164-4f03-9225-36ffa1a35daa__="true" bis_status="ok" bis_frame_id="824">
+  <div class="bedrock-page">
+    <div class="bedrock-logo">
+      <img src="./minecraft-bedrock.svg" alt="Minecraft Bedrock Edition">
+    </div>
+
+    <div class="bedrock-playbar" id="bedrock-playbar" style="bottom: 42px;">
+      <button class="bedrock-button disabled" id="bedrock-button" type="button" aria-label="Not compatible" onclick="handleBedrockClick()" style="width: 370px;">
+        <img id="bedrock-btn-img" src="./not compatible.png" alt="Play">
+      </button>
+      <div class="coin">
+        <img src="./coin.png" alt="Coin">
+      </div>
+    </div>
+
+    <div class="alert-bar" id="alert-bar" style="display: flex;">
+      <span class="icon">⚠</span>
+      <span id="alert-text">Minecraft Bedrock Edition isn't compatible with this launcher</span>
+    </div>
+  </div>
+
+  <script>
+    let clickCount = 0;
+    let buttonDisabled = false;
+    let timer1, timer2;
+
+    function showErrorBar(message) {
+      document.getElementById('alert-text').textContent = message;
+      document.getElementById('alert-bar').style.display = 'flex';
+      document.getElementById('bedrock-playbar').style.bottom = '42px';
+    }
+
+    function disableButton() {
+      const btn = document.getElementById('bedrock-button');
+      btn.classList.add('disabled');
+      btn.style.width = '370px';
+      document.getElementById('bedrock-btn-img').src = '/images/not compatible.png';
+      btn.setAttribute('aria-label', 'Not compatible');
+      buttonDisabled = true;
+    }
+
+    function handleBedrockClick() {
+      if (buttonDisabled) return;
+      clickCount++;
+
+      if (clickCount === 1) {
+        showErrorBar("Uh oh! An error occurred while trying to launch Minecraft Bedrock Edition, please try again later.");
+        return;
+      }
+
+      disableButton();
+      showErrorBar("Minecraft Bedrock Edition isn't compatible with this launcher");
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    }
+
+    timer1 = setTimeout(() => {
+      if (clickCount === 0) {
+        disableButton();
+      }
+    }, 10000);
+
+    timer2 = setTimeout(() => {
+      if (clickCount === 0) {
+        showErrorBar("Minecraft Bedrock Edition isn't compatible with this launcher");
+      }
+    }, 15000);
+  </script>
+
+</body></html>
