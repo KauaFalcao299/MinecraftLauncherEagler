@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!-- saved from url=(0043)https://ecz-launcher.vercel.app/pages/play/ -->
+<html><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/extend-native-history-api.js"></script><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/requests.js"></script><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body, html {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.bg {
+  position: relative;
+  /* The image used */
+  background-image: url("https://github.com/XxZixiaxX-Alt/ZX-Launcher/blob/main/images/wallpaper.png?raw=true");
+
+  /* Full height */
+  height: 100%; 
+
+  /* Center and scale the image nicely */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.minecraft-java-logo {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  width: 360px;
+  transform: translateX(-50%);
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+}
+
+</style>
+<script bis_use="true" type="text/javascript" charset="utf-8" nonce="" data-dynamic-id="e674b13b-2441-4692-860d-f4c7685ae58e" src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/executors/200.js"></script></head>
+<body __processed_bc9fa15e-0804-4823-a172-da0e44992885__="true" bis_status="ok" bis_frame_id="823">
+
+<div class="bg" style="background-image: url(&quot;/images/background/26.2.png&quot;);">
+  <img class="minecraft-java-logo" src="./minecraft-java.png" alt="Minecraft Java Edition" style="display: block;">
+</div>
+
+<script>
+  const backgrounds = {
+    "1.13.2": "/images/background/1.13.png",
+    "1.14.4": "/images/background/1.14.png",
+    "1.16.5": "/images/background/1.16.png",
+    "1.17.1": "/images/background/1.17.png",
+    "1.20.6": "/images/background/1.20.png",
+    "1.21.11": "/images/background/1.21.11.png",
+    "26.1.2": "/images/background/26.1.png",
+    "26.2": "/images/background/26.2.png",
+  };
+  function updateBackground() {
+    const selected = JSON.parse(sessionStorage.selectedInstance || "null");
+    const background = selected && (backgrounds[selected.versionID] || (selected.version === "1.20" && backgrounds["1.20.6"])) || "/images/wallpaper.png";
+    const hasCustomLogo = Boolean(selected && backgrounds[selected.versionID] && selected.versionID !== "1.20.6" && selected.version !== "1.20");
+    document.querySelector(".minecraft-java-logo").style.display = hasCustomLogo ? "block" : "none";
+    document.querySelector(".bg").style.backgroundImage = `url("${background}")`;
+    try {
+      const launcherWallpaper = window.parent.document.getElementById("minecraft-wallpaper");
+      const launcherContainer = window.parent.document.querySelector(".wallpaper-container");
+      if (launcherWallpaper) launcherWallpaper.src = background;
+      if (launcherContainer) {
+        let launcherLogo = launcherContainer.querySelector("#play-page-minecraft-logo");
+        if (!launcherLogo) {
+          launcherLogo = window.parent.document.createElement("img");
+          launcherLogo.id = "play-page-minecraft-logo";
+          launcherLogo.src = "/images/background/minecraft-java.png";
+          launcherLogo.alt = "Minecraft Java Edition";
+          Object.assign(launcherLogo.style, {
+            position: "absolute",
+            top: "18px",
+            left: "50%",
+            width: "360px",
+            height: "auto",
+            transform: "translateX(-50%)",
+            zIndex: "1",
+            pointerEvents: "none",
+          });
+          launcherContainer.appendChild(launcherLogo);
+        }
+        const otherMenuVisible = Array.from(window.parent.document.querySelectorAll(".iframePage"))
+          .some((page) => page.id !== "play" && page.style.display !== "none");
+        launcherLogo.style.display = otherMenuVisible || !hasCustomLogo ? "none" : "block";
+      }
+    } catch (error) {
+    }
+  }
+  updateBackground();
+  setInterval(updateBackground, 250);
+</script>
+
+
+
+</body></html>

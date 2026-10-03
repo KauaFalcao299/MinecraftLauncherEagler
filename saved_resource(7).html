@@ -1,0 +1,45 @@
+
+<!-- saved from url=(0044)https://ecz-launcher.vercel.app/pages/crash/ -->
+<html><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/extend-native-history-api.js"></script><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/requests.js"></script><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <style>
+            * {
+                margin: 0px;
+                color: black;
+            }
+            div {
+                width: 100%;
+                height: 100%;
+                resize: none;
+                padding: 1rem;
+                background-color: white;
+                font-family: 'Courier New', Courier, monospace;
+                display: block;
+                box-sizing: border-box;
+                overflow-y: auto;
+            }
+
+            .info {
+                color: black;
+            }
+
+            .warn {
+                color: rgb(190, 146, 0);
+            }
+
+            .error {
+                color: rgb(170, 0, 0);
+            }
+        </style>
+    <script bis_use="true" type="text/javascript" charset="utf-8" nonce="" data-dynamic-id="e674b13b-2441-4692-860d-f4c7685ae58e" src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/executors/200.js"></script></head>
+    <body __processed_8fd54e8a-4032-4f42-a6f1-dd079e1173d0__="true" bis_status="ok" bis_frame_id="830">
+        <div id="console">
+        </div>
+        <script>
+            if (sessionStorage.crashMessage) {
+                let textarea = document.getElementById('console');
+                let text = atob(sessionStorage.crashMessage);
+                textarea.innerHTML = text;
+            }
+        </script>
+    
+</body></html>

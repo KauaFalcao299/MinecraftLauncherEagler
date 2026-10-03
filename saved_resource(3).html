@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<!-- saved from url=(0046)https://ecz-launcher.vercel.app/pages/updates/ -->
+<html style="--version-background: url(&quot;../../images/background/26.2.png&quot;);"><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/extend-native-history-api.js"></script><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/requests.js"></script><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <style>
+            * {
+                font-family: "Open Sans", sans-serif;
+                color: white;
+            }
+
+            :root {
+                color-scheme: dark;
+            }
+
+            body {
+                background-image: var(--version-background, url(../../images/wallpaper.png));
+                background-size: cover;
+                background-attachment: fixed;
+                background-repeat: no-repeat;
+                padding-top: 30%;
+                padding-left: 15%;
+                padding-right: 15%;
+                background-position: top center;
+            }
+
+            .minecraft-java-logo {
+                position: fixed;
+                top: 18px;
+                left: 50%;
+                width: 360px;
+                height: auto;
+                transform: translateX(-50%);
+                z-index: 1;
+                pointer-events: none;
+            }
+
+            .update {
+                border: 0px;
+                border-bottom: 1px solid #ffffff3d;
+            }
+
+            .update-title {
+                margin-block-end: 0.5rem;
+            }
+
+            .update-date {
+                font-size: small;
+                font-weight: 600;
+                color: #ffffff83;
+                margin-left: 0.5rem;
+            }
+
+            .update-content {
+                margin-block-start: 0.5rem;
+                white-space: pre-line;
+            }
+
+            #updateList {
+                background-color: #0b00148a;
+                padding-left: 1rem;
+                padding-top: 0.5rem;
+                backdrop-filter: blur(3px);
+            }
+        </style>
+    <script bis_use="true" type="text/javascript" charset="utf-8" nonce="" data-dynamic-id="e674b13b-2441-4692-860d-f4c7685ae58e" src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/executors/200.js"></script></head>
+    <body __processed_98255c3b-7d4e-45e1-851b-19d86029de51__="true" bis_status="ok" bis_frame_id="822">
+        <img class="minecraft-java-logo" src="./minecraft-java.png" alt="Minecraft Java Edition" style="display: block;">
+        <div id="updateList">
+                <div class="update">
+                    <h3 class="update-title"> MINECRAFT BEDROCK! <span class="update-date"> 8/29/2026 </span></h3>
+                    <p class="update-content"> - Added Minecraft Bedrock Edition to the launcher! You can now TOTALLY PLAY IT.
+                            - Added Minecraft Dungeons
+                            - Added Minecraft Legends
+                            - Updated some of the launcher's UI
+                            - Fixed some bugs </p>
+                </div>
+                <div class="update">
+                    <h3 class="update-title"> Huge revamp to the launcher UI and design! <span class="update-date"> 8/28/2026 </span></h3>
+                    <p class="update-content"> - Added some new settings and revamped the entire launcher with a newer modern Minecraft Launcher UI! </p>
+                </div>
+                <div class="update">
+                    <h3 class="update-title"> 1.21.11 is now available on the launcher! <span class="update-date"> 8/27/2026 </span></h3>
+                    <p class="update-content"> - Added Eaglercraft 1.21.11 to launcher! </p>
+                </div>
+                <div class="update">
+                    <h3 class="update-title"> New background some other changes <span class="update-date"> 8/26/2026 </span></h3>
+                    <p class="update-content"> - New backgrounds for the launcher depending on which version is selected on the launcher! </p>
+                </div>
+                <div class="update">
+                    <h3 class="update-title"> A full revamped launcher of EaglercraftZ! <span class="update-date"> 8/24/2026 </span></h3>
+                    <p class="update-content"> - EaglercraftZ Launcher has been completely revamped with a new design and features with a similarity to the real minecraft launcher by 90%. This launcher also includes a feature where you can play other versions and clients. </p>
+                </div></div>
+        <script>
+            const backgrounds = {
+                "1.13.2": "../../images/background/1.13.png",
+                "1.14.4": "../../images/background/1.14.png",
+                "1.16.5": "../../images/background/1.16.png",
+                "1.17.1": "../../images/background/1.17.png",
+                "1.20.6": "../../images/background/1.20.png",
+                "1.21.11": "../../images/background/1.21.11.png",
+                "26.1.2": "../../images/background/26.1.png",
+                "26.2": "../../images/background/26.2.png",
+            };
+            function updateBackground() {
+                const selected = JSON.parse(sessionStorage.selectedInstance || "null");
+                const background = selected && (backgrounds[selected.versionID] || (selected.version === "1.20" && backgrounds["1.20.6"])) || "../../images/wallpaper.png";
+                const hasCustomLogo = Boolean(selected && backgrounds[selected.versionID] && selected.versionID !== "1.20.6" && selected.version !== "1.20");
+                document.querySelector(".minecraft-java-logo").style.display = hasCustomLogo ? "block" : "none";
+                document.documentElement.style.setProperty('--version-background', `url("${background}")`);
+            }
+            updateBackground();
+            setInterval(updateBackground, 250);
+
+            const updates = [
+                {
+                    id: "2026-08-29-bedrock",
+                    title: "MINECRAFT BEDROCK!",
+                    date: "8/29/2026",
+                    content: `- Added Minecraft Bedrock Edition to the launcher! You can now TOTALLY PLAY IT.
+                            - Added Minecraft Dungeons
+                            - Added Minecraft Legends
+                            - Updated some of the launcher's UI
+                            - Fixed some bugs`,
+                },
+                {
+                    id: "2026-08-28-ui",
+                    title: "Huge revamp to the launcher UI and design!",
+                    date: "8/28/2026",
+                    content: `- Added some new settings and revamped the entire launcher with a newer modern Minecraft Launcher UI!`,
+                },
+                {
+                    id: "2026-08-27-version",
+                    title: "1.21.11 is now available on the launcher!",
+                    date: "8/27/2026",
+                    content: `- Added Eaglercraft 1.21.11 to launcher!`,
+                },
+                {
+                    id: "2026-08-26-launcher-background",
+                    title: "New background some other changes",
+                    date: "8/26/2026",
+                    content: `- New backgrounds for the launcher depending on which version is selected on the launcher!`,
+                },
+                {
+                    id: "2026-08-24-launcher-revamp",
+                    title: "A full revamped launcher of EaglercraftZ!",
+                    date: "8/24/2026",
+                    content: `- EaglercraftZ Launcher has been completely revamped with a new design and features with a similarity to the real minecraft launcher by 90%. This launcher also includes a feature where you can play other versions and clients.`,
+                },
+            ];
+            updates.forEach((element) => {
+                const update = `
+                <div class="update">
+                    <h3 class="update-title"> ${element.title} <span class="update-date"> ${element.date} </span></h3>
+                    <p class="update-content"> ${element.content} </p>
+                </div>`;
+                document.getElementById("updateList").innerHTML += update;
+            });
+        </script>
+    
+</body></html>

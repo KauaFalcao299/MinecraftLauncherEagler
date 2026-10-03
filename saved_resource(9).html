@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<!-- saved from url=(0047)https://ecz-launcher.vercel.app/pages/settings/ -->
+<html lang="en"><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/extend-native-history-api.js"></script><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/requests.js"></script><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Launcher Settings</title>
+    <link rel="stylesheet" href="./checkboxes.css">
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #fff;
+            font-family: "Noto Sans", sans-serif;
+            text-align: left;
+            margin: 0;
+            padding: 20px;
+        }
+        .settings-tabs {
+            display: flex;
+            border-bottom: 2px solid #333;
+            margin-bottom: 20px;
+        }
+        .settings-tab {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 16px;
+            padding: 10px 25px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: bold;
+        }
+        .settings-tab.active {
+            color: #fff;
+            border-bottom: 2px solid #00a86b;
+        }
+        .settings-content {
+            max-width: 600px;
+        }
+        h3 {
+            font-weight: bold;
+            margin-top: 30px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+            color: #aaa;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .settings-row {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+        }
+        .settings-row label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 14px;
+            color: #ddd;
+        }
+        .settings-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: #00a86b;
+        }
+        .settings-row select,
+        .settings-row input[type="number"] {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 4px;
+            width: 200px;
+        }
+        .settings-row input[type="number"] {
+            width: 80px;
+        }
+        .settings-actions {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+        }
+        .settings-actions button {
+            padding: 8px 24px;
+            border: none;
+            background: #00a86b;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .settings-actions button.reset-btn {
+            background: #555;
+        }
+        .account-list {
+            margin-top: 20px;
+        }
+        .account-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #2a2a2a;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+        .account-item.active {
+            border: 1px solid #00a86b;
+        }
+        .account-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .account-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #444;
+        }
+        .account-actions button {
+            background: #555;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            margin-left: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .account-actions button:hover {
+            background: #777;
+        }
+        #add-account-btn {
+            width: 100%;
+            padding: 10px;
+            background: #00a86b;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        #add-account-btn:disabled {
+            background: #444;
+            cursor: not-allowed;
+        }
+
+        /* About tab specific */
+        .about-version-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 10px 0;
+        }
+        .about-version-row span {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .check-update-btn {
+            background: #00a86b;
+            color: #fff;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .check-update-btn:disabled {
+            background: #555;
+        }
+        .up-to-date-msg {
+            display: none;
+            color: #00c97a;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .about-info p {
+            margin: 5px 0;
+            color: #ccc;
+        }
+        .about-info a {
+            color: #00a2ff;
+        }
+    </style>
+<script bis_use="true" type="text/javascript" charset="utf-8" nonce="" data-dynamic-id="e674b13b-2441-4692-860d-f4c7685ae58e" src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/executors/200.js"></script></head>
+<body __processed_41dbfe83-b6be-4226-bb5f-c30a3334fe51__="true" bis_status="ok" bis_frame_id="832">
+    <div class="settings-tabs">
+        <button class="settings-tab active" onclick="showTab(&#39;general&#39;)">General</button>
+        <button class="settings-tab" onclick="showTab(&#39;accounts&#39;)">Accounts</button>
+        <button class="settings-tab" onclick="showTab(&#39;about&#39;)">About</button>
+    </div>
+
+    <div id="tab-general" class="settings-content">
+        <h3>Language</h3>
+        <div class="settings-row">
+            <select id="languageSelect">
+                <option value="en">English - United States</option>
+                <option value="es">Español - España</option>
+                <option value="fr">Français - France</option>
+                <option value="de">Deutsch - Deutschland</option>
+            </select>
+        </div>
+        <h3>Launcher Settings</h3>
+        <div class="settings-row">
+            <label for="launcherUi">Launcher interface</label>
+            <select id="launcherUi">
+                <option value="new">New Minecraft Launcher</option>
+                <option value="old">Classic ECZ Launcher</option>
+            </select>
+        </div>
+        <div class="settings-row">
+            <input type="checkbox" id="useBeta">
+            <label for="useBeta">Use beta version of the Launcher</label>
+        </div>
+        <div class="settings-row">
+            <input type="checkbox" id="keepOpen">
+            <label for="keepOpen">Keep the Launcher open while games are running</label>
+        </div>
+        <div class="settings-row">
+            <input type="checkbox" id="animateTransitions">
+            <label for="animateTransitions">Animate transitions between pages in the Launcher</label>
+        </div>
+        <div class="settings-row">
+            <input type="checkbox" id="animatePlayButton">
+            <label for="animatePlayButton">Animate play button on the Play pages in the Launcher</label>
+        </div>
+        <div class="settings-row">
+            <input type="checkbox" id="disableHW">
+            <label for="disableHW">Disable hardware acceleration (requires restarting the Launcher)</label>
+        </div>
+        <h3>Minecraft: Java Edition Settings</h3>
+        <div class="settings-row">
+            <input type="checkbox" id="openLog">
+            <label for="openLog">Open output log when Minecraft: Java Edition starts</label>
+        </div>
+        <div class="settings-row">
+            <input type="checkbox" id="showHistorical">
+            <label for="showHistorical">Show historical versions of Minecraft: Java Edition in the Launcher</label>
+        </div>
+        <h3>Launcher Appearance</h3>
+        <div class="settings-row">
+            <input type="checkbox" id="iconClients">
+            <label for="iconClients">Display client icons in selector</label>
+        </div>
+        <div class="settings-row">
+            <input type="checkbox" id="showConsoleAuto">
+            <label for="showConsoleAuto">Display automatically console when game starts</label>
+        </div>
+        <div class="settings-actions">
+            <button id="saveSettingsBtn">Save Settings</button>
+            <button class="reset-btn" id="resetSettingsBtn">Reset to Defaults</button>
+        </div>
+    </div>
+
+    <div id="tab-accounts" class="settings-content" style="display: none;">
+        <h3>Accounts</h3>
+        <div id="account-list"><div class="account-item active">
+                    <div class="account-info">
+                        <img class="account-avatar" src="./eagler-account.png">
+                        <div><b>kauamazon25</b><br><span style="font-size:12px;color:#888;">kauamazon25@gmail.com (Signed in)</span></div>
+                    </div>
+                </div></div>
+        <button id="add-account-btn">Add Account</button>
+    </div>
+
+    <div id="tab-about" class="settings-content" style="display: none;">
+        <h3>Launcher Version</h3>
+        <div class="about-version-row">
+            <span>v1.33.1-26</span>
+            <button class="check-update-btn" id="checkUpdatesBtn">Check for updates</button>
+        </div>
+        <div class="up-to-date-msg" id="upToDateMsg">✓ Up to date</div>
+
+        <h3>Credits</h3>
+        <div class="about-info">
+            <p>Made by <strong>UrBudPenguin</strong></p>
+        </div>
+
+        <h3>Legal Info</h3>
+        <div class="about-info">
+            <p>This website is not affiliated with Mojang.</p>
+            <p>Copyright © 2024-2026 Penguin Productions. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        const defaultSettings = {
+            language: 'en',
+            launcherUi: 'old',
+            useBeta: false,
+            keepOpen: true,
+            animateTransitions: false,
+            animatePlayButton: false,
+            disableHW: false,
+            openLog: true,
+            showHistorical: false,
+            iconClients: true,
+            showConsoleAuto: true
+        };
+
+        function loadSettings() {
+            const stored = localStorage.getItem('launcherSettings');
+            if (stored) return { ...defaultSettings, ...JSON.parse(stored) };
+            return { ...defaultSettings };
+        }
+
+        function saveSettingsToStorage(settings) {
+            localStorage.setItem('launcherSettings', JSON.stringify(settings));
+        }
+
+        function applySettings() {
+            const s = loadSettings();
+            document.getElementById('languageSelect').value = s.language;
+            document.getElementById('launcherUi').value = s.launcherUi || localStorage.getItem('launcherUi') || 'old';
+            document.getElementById('useBeta').checked = s.useBeta;
+            document.getElementById('keepOpen').checked = s.keepOpen;
+            document.getElementById('animateTransitions').checked = s.animateTransitions;
+            document.getElementById('animatePlayButton').checked = s.animatePlayButton;
+            document.getElementById('disableHW').checked = s.disableHW;
+            document.getElementById('openLog').checked = s.openLog;
+            document.getElementById('showHistorical').checked = s.showHistorical;
+            document.getElementById('iconClients').checked = s.iconClients;
+            document.getElementById('showConsoleAuto').checked = s.showConsoleAuto;
+            sessionStorage.settings = JSON.stringify({
+                displayHacked: false,
+                iconClients: s.iconClients,
+                showConsoleAuto: s.showConsoleAuto
+            });
+        }
+
+        document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+            const newSettings = {
+                language: document.getElementById('languageSelect').value,
+                launcherUi: document.getElementById('launcherUi').value,
+                useBeta: document.getElementById('useBeta').checked,
+                keepOpen: document.getElementById('keepOpen').checked,
+                animateTransitions: document.getElementById('animateTransitions').checked,
+                animatePlayButton: document.getElementById('animatePlayButton').checked,
+                disableHW: document.getElementById('disableHW').checked,
+                openLog: document.getElementById('openLog').checked,
+                showHistorical: document.getElementById('showHistorical').checked,
+                iconClients: document.getElementById('iconClients').checked,
+                showConsoleAuto: document.getElementById('showConsoleAuto').checked
+            };
+            saveSettingsToStorage(newSettings);
+            localStorage.setItem('launcherUi', newSettings.launcherUi);
+            applySettings();
+            try { window.parent.applyLauncherUi(); } catch (e) {}
+            if (newSettings.disableHW) alert("Hardware acceleration disabled. Restart the launcher for it to take effect.");
+        });
+
+        document.getElementById('resetSettingsBtn').addEventListener('click', () => {
+            saveSettingsToStorage(defaultSettings);
+            localStorage.setItem('launcherUi', defaultSettings.launcherUi);
+            applySettings();
+            try { window.parent.applyLauncherUi(); } catch (e) {}
+        });
+
+        document.getElementById('languageSelect').addEventListener('change', (e) => {
+            const s = loadSettings();
+            s.language = e.target.value;
+            saveSettingsToStorage(s);
+            const titles = { en: 'General', es: 'General', fr: 'Général', de: 'Allgemein' };
+            document.querySelectorAll('.settings-tab')[0].innerText = titles[s.language];
+        });
+
+        // Check updates button
+        document.getElementById('checkUpdatesBtn').addEventListener('click', function() {
+            this.disabled = true;
+            this.textContent = 'Checking...';
+            setTimeout(() => {
+                document.getElementById('upToDateMsg').style.display = 'block';
+                this.textContent = 'Check for updates';
+                this.disabled = false;
+            }, 1000);
+        });
+
+        function showTab(tab) {
+            document.querySelectorAll('.settings-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-general').style.display = 'none';
+            document.getElementById('tab-accounts').style.display = 'none';
+            document.getElementById('tab-about').style.display = 'none';
+            if (tab === 'general') {
+                document.querySelectorAll('.settings-tab')[0].classList.add('active');
+                document.getElementById('tab-general').style.display = 'block';
+            } else if (tab === 'accounts') {
+                document.querySelectorAll('.settings-tab')[1].classList.add('active');
+                document.getElementById('tab-accounts').style.display = 'block';
+            } else {
+                document.querySelectorAll('.settings-tab')[2].classList.add('active');
+                document.getElementById('tab-about').style.display = 'block';
+            }
+        }
+
+        // Account functions (unchanged)
+        function getParentAccount() {
+            try {
+                const parentSession = window.parent.sessionStorage.getItem('account');
+                if (parentSession) {
+                    return JSON.parse(parentSession);
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        function getParentAuth() {
+            return window.parent && window.parent.ECZAuth ? window.parent.ECZAuth : null;
+        }
+
+        function updateParentSession(newAccount) {
+            try {
+                window.parent.sessionStorage.setItem('account', JSON.stringify(newAccount));
+                const parentDoc = window.parent.document;
+                if (parentDoc.getElementById('accountName')) {
+                    parentDoc.getElementById('accountName').innerText = newAccount.displayName || 'Player';
+                }
+                if (parentDoc.getElementById('mojang-logo')) {
+                    parentDoc.getElementById('mojang-logo').src = newAccount.photoURL || '/images/eagler-account.png';
+                }
+            } catch (e) {}
+        }
+
+        let accounts = JSON.parse(localStorage.getItem('launcherAccounts') || '[]');
+        let activeIndex = parseInt(localStorage.getItem('activeAccountIndex') || '0');
+
+        function syncCurrentAccount() {
+            const current = getParentAccount();
+            if (current) {
+                const idx = accounts.findIndex(a => a.email === current.email);
+                if (idx !== -1) {
+                    activeIndex = idx;
+                    localStorage.setItem('activeAccountIndex', activeIndex.toString());
+                } else {
+                    accounts.push({
+                        name: current.displayName || current.email.split('@')[0],
+                        email: current.email,
+                        photoURL: current.photoURL || '/images/eagler-account.png',
+                        password: null
+                    });
+                    localStorage.setItem('launcherAccounts', JSON.stringify(accounts));
+                }
+            }
+            renderAccounts();
+        }
+
+        function renderAccounts() {
+            const current = getParentAccount();
+            const list = document.getElementById('account-list');
+            list.innerHTML = '';
+
+            if (current) {
+                const item = document.createElement('div');
+                item.className = 'account-item active';
+                item.innerHTML = `
+                    <div class="account-info">
+                        <img class="account-avatar" src="${current.photoURL || '/images/eagler-account.png'}">
+                        <div><b>${current.displayName || 'Player'}</b><br><span style="font-size:12px;color:#888;">${current.email || ''} (Signed in)</span></div>
+                    </div>
+                `;
+                list.appendChild(item);
+            }
+
+            accounts.forEach((acc, idx) => {
+                if (current && acc.email === current.email) return;
+                const item = document.createElement('div');
+                item.className = 'account-item' + (idx === activeIndex ? ' active' : '');
+                item.innerHTML = `
+                    <div class="account-info">
+                        <img class="account-avatar" src="${acc.photoURL || '/images/eagler-account.png'}">
+                        <div><b>${acc.name || 'Player'}</b><br><span style="font-size:12px;color:#888;">${acc.email || 'Local Account'}</span></div>
+                    </div>
+                    <div class="account-actions">
+                        <button onclick="switchAccount(${idx})">Switch</button>
+                        <button onclick="removeAccount(${idx})">Remove</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+
+            const addBtn = document.getElementById('add-account-btn');
+            const totalCount = accounts.length + (current ? 1 : 0);
+            addBtn.disabled = totalCount >= 3;
+            addBtn.innerText = totalCount >= 3 ? 'Maximum 3 Accounts Reached' : 'Add Account';
+        }
+
+        async function switchAccount(index) {
+            const acc = accounts[index];
+            if (!acc) return;
+            const auth = getParentAuth();
+            if (auth && acc.password) {
+                try {
+                    await auth.signOut();
+                    await auth.signInWithEmailAndPassword(acc.email, acc.password);
+                    const user = auth.currentUser;
+                    const newAccount = {
+                        displayName: user.displayName || acc.name,
+                        email: user.email,
+                        photoURL: user.photoURL || acc.photoURL,
+                        provider: 'password'
+                    };
+                    updateParentSession(newAccount);
+                    activeIndex = index;
+                    localStorage.setItem('activeAccountIndex', activeIndex.toString());
+                    renderAccounts();
+                    window.parent.location.reload();
+                } catch (err) {
+                    alert('Failed to switch account: ' + err.message);
+                }
+            } else {
+                alert('No password stored for this account. Please remove and re-add it with a password.');
+            }
+        }
+
+        function removeAccount(index) {
+            const current = getParentAccount();
+            if (current && accounts[index] && accounts[index].email === current.email) {
+                alert('Cannot remove the currently signed-in account. Sign out first.');
+                return;
+            }
+            if (accounts.length <= 1) {
+                alert('You must have at least one saved account.');
+                return;
+            }
+            accounts.splice(index, 1);
+            if (activeIndex >= accounts.length) activeIndex = 0;
+            localStorage.setItem('launcherAccounts', JSON.stringify(accounts));
+            localStorage.setItem('activeAccountIndex', activeIndex.toString());
+            renderAccounts();
+        }
+
+        document.getElementById('add-account-btn').addEventListener('click', async () => {
+            const email = prompt('Enter email address:');
+            if (!email) return;
+            const password = prompt('Enter password:');
+            if (!password) return;
+            const auth = getParentAuth();
+            if (auth) {
+                try {
+                    await auth.signInWithEmailAndPassword(email, password);
+                    const user = auth.currentUser;
+                    const existing = accounts.findIndex(a => a.email === email);
+                    if (existing !== -1) {
+                        accounts[existing].password = password;
+                        accounts[existing].name = user.displayName || email.split('@')[0];
+                        accounts[existing].photoURL = user.photoURL || '/images/eagler-account.png';
+                    } else {
+                        accounts.push({
+                            name: user.displayName || email.split('@')[0],
+                            email: email,
+                            photoURL: user.photoURL || '/images/eagler-account.png',
+                            password: password
+                        });
+                    }
+                    localStorage.setItem('launcherAccounts', JSON.stringify(accounts));
+                    const newAccount = {
+                        displayName: user.displayName || email.split('@')[0],
+                        email: email,
+                        photoURL: user.photoURL || '/images/eagler-account.png',
+                        provider: 'password'
+                    };
+                    updateParentSession(newAccount);
+                    activeIndex = accounts.findIndex(a => a.email === email);
+                    localStorage.setItem('activeAccountIndex', activeIndex.toString());
+                    renderAccounts();
+                    window.parent.location.reload();
+                } catch (err) {
+                    alert('Failed to add account: ' + err.message);
+                }
+            } else {
+                alert('Firebase auth not available in parent window.');
+            }
+        });
+
+        window.addEventListener('load', () => {
+            applySettings();
+            syncCurrentAccount();
+        });
+
+        if (accounts.length === 0) {
+            const current = getParentAccount();
+            if (current) {
+                accounts.push({
+                    name: current.displayName || 'Player',
+                    email: current.email,
+                    photoURL: current.photoURL || '/images/eagler-account.png',
+                    password: null
+                });
+            } else {
+                accounts = [{ name: 'Player', email: '', photoURL: '/images/eagler-account.png', password: null }];
+            }
+            localStorage.setItem('launcherAccounts', JSON.stringify(accounts));
+            activeIndex = 0;
+            localStorage.setItem('activeAccountIndex', '0');
+        }
+    </script>
+
+</body></html>
